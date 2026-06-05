@@ -463,13 +463,13 @@ async function conectarBT(){
     await ST.btChar.startNotifications();
     ST.btChar.addEventListener('characteristicvaluechanged',onHR);
     ST.connected=true;
-    btn.textContent='✅ CooSpo conectada';
+    btn.textContent='✅ ✅ Conectado';
     btn.className='btn-conectar ok';
-    status.textContent='Sinal ativo — cinta pronta';
+    status.textContent='Sinal ativo — sensor pronto';
     status.style.color='#10b981';
     device.addEventListener('gattserverdisconnected',()=>{
       ST.connected=false;
-      btn.textContent='🔗 Reconectar CooSpo HW9';
+      btn.textContent='🔗 Reconectar Sensor BT';
       btn.className='btn-conectar';
       status.textContent='Desconectado';
       status.style.color='var(--z5)';
@@ -534,7 +534,7 @@ document.getElementById('btn-start').addEventListener('click',()=>{
   if(!ST.connected)startDemo();
 });
 
-// ══ DEMO (sem cinta) ══════════════════════════════════
+// ══ DEMO (sem sensor) ══════════════════════════════════
 let demoT=0;
 function startDemo(){
   const curve=[68,72,78,85,92,102,112,125,136,145,152,158,163,168,172,175,172,168,162,155,148,142,138,134,130,126,122,118,114,110,108,112,118,125,132,140,148,155,162,168,172,176,178,175,170,164,158,152,146,140];
@@ -731,43 +731,43 @@ function generateAI(s){
     const z1z2=zpcts[0]+zpcts[1];
 
     if(z4z5>60){
-      txt+=`Treino de alta intensidade — ${z4z5}% do tempo acima do limiar anaeróbico (${s.lan} bpm). Este padrão estimula adaptações de VO2 máx e densidade capilar muscular, mas acumula lactato e catecolaminas que prolongam a recuperação. Para trabalhadores físicos pesados, BJSM (2025) alerta: mais de 2 sessões/semana em Z4-Z5 sem Z2 adequado aumenta o risco de overtraining. Para trabalhadores físicos pesados, o ACWR (razão carga aguda/crônica) deve ser mantido entre 0.8-1.3 para prevenir lesões — Gabbett 2016, validado em 2025 por múltiplos estudos populacionais. `;
+      txt+=`🔴 Alta intensidade — ${z4z5}% acima do limiar (${s.lan} bpm). → Máx 2 sessões/semana. Próximo treino: Z2 puro. `;
     } else if(z1z2>70){
-      txt+=`Treino predominantemente aeróbico leve — ${z1z2}% em Z1-Z2. Excelente para seu perfil: polarized training com 80% volume em baixa intensidade demonstrou ganhos de VO2 máx superiores ao treino threshold em metanálise de 353 estudos (Sports Medicine, 2024). A frequência de ressonância cardíaca em Z2 (60-70% FCmax) também maximiza a biogênese mitocondrial via PGC-1α — proteína reguladora master do metabolismo aeróbico (Cell Metabolism, 2024). Este padrão preserva glicogênio e favorece biogênese mitocondrial sem sobrecarregar o sistema nervoso. `;
+      txt+=`🟢 Aeróbico leve — ${z1z2}% em Z1-Z2. Padrão polarizado correto. Biogênese mitocondrial em andamento. `;
     } else {
-      txt+=`Distribuição de zonas equilibrada — combinação aeróbica-limiar com ${zpcts[2]}% em Z3. Estudo comparativo (Frontiers Sports, 2025) confirma que esta polarização moderada gera ótima relação estímulo/recuperação para atletas com carga de trabalho ocupacional elevada. `;
+      txt+=`⚪ Distribuição equilibrada — ${zpcts[2]}% em Z3. Relação estímulo/recuperação adequada. `;
     }
 
     // ── BLOCO 2: TRIMP e carga acumulada ──
     if(s.trimp>=350){
-      txt+=`TRIMP ${s.trimp} — carga pesada. Somado ao trabalho físico de 12h em turno noturno (≈220 TRIMP equivalente diário), o sistema nervoso autônomo está sob pressão significativa. Journal of Occupational Health 2024: trabalhadores físicos em turno noturno têm recuperação 30-40% mais lenta que trabalhadores diurnos na mesma carga de treino. Priorize 36-48h de recuperação antes do próximo treino intenso. `;
+      txt+=`TRIMP ${s.trimp} — carga pesada. + turno noturno braçal = recuperação 36-48h. → Não adicione carga. `;
     } else if(s.trimp>=200){
-      txt+=`TRIMP ${s.trimp} — carga moderada-pesada. Adequada para induzir supercompensação se a recuperação for respeitada. ${avgTrimp?`Seu TRIMP médio histórico é ${avgTrimp} — você está ${s.trimp>avgTrimp?'acima':'dentro'} da média. `:''}Recuperação estimada: ${s.rec}h. A carga cumulativa de trabalho físico (estimada em 150-220 TRIMP equivalente por turno de 12h pesado) deve ser somada ao TRIMP do treino para avaliar a carga semanal real. `;
+      txt+=`TRIMP ${s.trimp} — carga moderada. ${avgTrimp?`Média histórica: ${avgTrimp}.`:''} Recuperação: ${s.rec}h. `;
     } else if(s.trimp>=100){
-      txt+=`TRIMP ${s.trimp} — carga moderada. Estímulo suficiente para manutenção cardiovascular sem stress excessivo. Ideal para dias de folga pós-turno. ${avgTrimp?`Média histórica: ${avgTrimp} TRIMP. `:''}`;
+      txt+=`TRIMP ${s.trimp} — carga moderada. ${avgTrimp?`Média: ${avgTrimp}.`:''} Ideal pós-turno. `;
     } else {
-      txt+=`TRIMP ${s.trimp} — carga leve. Treino de recuperação ativa. Pesquisas mostram que exercício leve em Z1-Z2 acelera a remoção de lactato e melhora o fluxo linfático, reduzindo DOMS (dor muscular tardia) em trabalhadores físicos (NSCA/JSCR, 2024). `;
+      txt+=`TRIMP ${s.trimp} — recuperação ativa. Z1-Z2 acelera remoção de lactato. ✅ `;
     }
 
     // ── BLOCO 3: VO2 Máx e potencial ──
     const vo2class=s.vo2>=55?'excelente':s.vo2>=47?'bom':s.vo2>=42?'médio':'abaixo da média';
-    txt+=`VO2 Máx estimado ${s.vo2} ml/kg/min — classificação ${vo2class} para 37 anos (média populacional 42 ml/kg/min). Fórmula Uth-Sørensen 2004 com margem ±3,5 ml/kg/min. `;
+    txt+=`VO2 Máx estimado: ${s.vo2} ml/kg/min — ${vo2class}. `;
 
     if(s.tipoTreino&&s.tipoTreino!=='Treino livre'){
       if(s.tipoTreino.toLowerCase().includes('bike')||s.tipoTreino.toLowerCase().includes('zwift')){
-        txt+=`Ciclismo: zona 2 em bike é o protocolo mais eficiente para biogênese mitocondrial — Dr. Iñigo San Millán (WorldTour cycling) confirma que atletas de elite passam 80% do volume em Z2. Para seu VO2 atual, 3 sessões/semana em Z2 (60-75% FCmax) por 45-60min produziriam ganho de 8-12% em 12 semanas (Sports Medicine meta-analysis, 2024). `;
+        txt+=`→ Bike Z2 (60-75% FCmax): 3x/sem 45-60min. Ganho estimado VO2 de 8-12% em 12 semanas. `;
       } else if(s.tipoTreino.toLowerCase().includes('hiit')||s.tipoTreino.toLowerCase().includes('intervalo')){
-        txt+=`HIIT: estímulo de alta qualidade para VO2 máx. Pesquisas mostram que 6 semanas de HIIT bem estruturado podem aumentar o VO2 máx em 8-12%. Mas para seu perfil com turno noturno pesado: máximo 2 sessões HIIT/semana com pelo menos 48h de intervalo entre elas. `;
+        txt+=`→ HIIT: máx 2x/sem. Intervalo mínimo 48h entre sessões (turno noturno pesado). `;
       }
     }
 
     // ── BLOCO 4: Recomendação prática de alto impacto ──
     if(z4z5>50&&s.trimp>200){
-      txt+='Recomendação: próximo treino em Z2 puro (FC abaixo de '+Math.round(s.fcmaxConfig*0.75)+' bpm) por 40-50min. Polarized training exige contraste real — após alta intensidade, a sessão seguinte deve ser genuinamente leve para permitir adaptação mitocondrial completa.';
+      txt+='→ Próximo: Z2 puro (abaixo de '+Math.round(s.fcmaxConfig*0.75)+' bpm) 40-50min.';
     } else if(z1z2>70){
-      txt+='Recomendação: adicione 2-3 intervalos de 4min em Z4 no próximo treino (método 4x4 norueguês). A combinação Z2 base + estímulos Z4 ocasionais é a fórmula mais eficaz para VO2 máx em atletas amadores (IJSPP, 2025). O método 4x4 norueguês — 4 intervalos de 4min em 90-95% FCmax com 3min de recuperação ativa — produziu ganhos de VO2 máx de 7.2ml/kg/min em 8 semanas em estudo randomizado (Wisløff et al., validado por Helgerud).' ;
+      txt+='→ Próximo: 2-3 intervalos de 4min em Z4 (90-95% FCmax). Método 4x4 norueguês.';
     } else {
-      txt+='Recomendação: mantenha a consistência — frequência supera intensidade para sua faixa etária e perfil. Três sessões semanais de 45min são superiores a uma sessão longa semanal para adaptações cardiovasculares de longo prazo.';
+      txt+='→ Consistência: 3x/sem 45min supera 1x longa. Frequência > intensidade.';
     }
 
     body.style.opacity='0';body.style.transition='opacity 0.5s';
