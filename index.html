@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- MAX.CORE PULSE © 2025 — Todos os direitos reservados -->
-<!-- Criado por: Eliezer Silva Giorni — Versão 1.1 -->
-<!-- Correções: letter-spacing:0, max-width:100vw, SW domain, template→concat -->
+<!-- MAX.CORE PULSE — Versão 1.2 -->
+<!-- v1.1: letter-spacing:0, max-width:100vw, SW domain, template→concat -->
+<!-- v1.2: TRIMP ÷60 (segundos→minutos), Calorias VO2 Reserve, R-R intervals BLE (HW9/H10), RMSSD ao vivo, fade fix, SW removido, demoT removido -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -31,9 +31,7 @@
   --z1:#f4f4f5;--z2:#3b82f6;--z3:#22c55e;--z4:#f59e0b;--z5:#ef4444;
   --blu:#3b82f6;--pur:#8b5cf6;
 }
-/* FIX: letter-spacing:0 global */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;letter-spacing:0!important;}
-/* FIX: max-width:100vw */
 html,body{width:100%;max-width:100vw;height:100%;background:var(--bg);color:var(--tx);overflow:hidden;position:fixed;top:0;left:0;font-family:'Inter',sans-serif;}
 button{border:none;background:none;padding:0;margin:0;font-family:inherit;color:inherit;cursor:pointer;outline:none;}
 #splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity 0.9s ease;}
@@ -61,12 +59,7 @@ button{border:none;background:none;padding:0;margin:0;font-family:inherit;color:
 .setup-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Lilita One',cursive;font-size:1.6rem;padding:9px 14px;outline:none;text-align:center;-webkit-appearance:none;appearance:none;transition:border-color 0.2s;}
 .setup-input:focus{border-color:var(--blu);}
 .setup-input::placeholder{color:var(--t2);}
-.setup-unit{font-family:'Roboto Mono',monospace;font-size:0.58rem;color:var(--t3);text-transform:uppercase;}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;appearance:none;}
-.setup-info{background:var(--s2);border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--bd);}
-.setup-info-row{display:flex;justify-content:space-between;align-items:center;}
-.setup-info-lbl{font-family:'Roboto Mono',monospace;font-size:0.6rem;color:var(--t3);}
-.setup-info-val{font-family:'Lilita One',cursive;font-size:0.95rem;color:var(--tx);}
 .zonas-preview{display:flex;flex-direction:column;gap:5px;}
 .zp-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);}
 .zp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
@@ -203,23 +196,23 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
       <div class="setup-card">
         <div class="lbl">Configure suas zonas</div>
         <div class="setup-row">
-          <span class="setup-unit">FC Máx (bpm)</span>
+          <span style="font-family:'Roboto Mono',monospace;font-size:0.58rem;text-transform:uppercase;color:var(--t3);">FC Máx (bpm)</span>
           <input type="number" class="setup-input" id="inp-fcmax" value="182" min="120" max="220" inputmode="numeric">
         </div>
         <div class="setup-row">
-          <span class="setup-unit">FC Repouso (bpm)</span>
+          <span style="font-family:'Roboto Mono',monospace;font-size:0.58rem;text-transform:uppercase;color:var(--t3);">FC Repouso (bpm)</span>
           <input type="number" class="setup-input" id="inp-fcrep" value="58" min="30" max="100" inputmode="numeric">
         </div>
         <div class="setup-row">
-          <span class="setup-unit">Peso (kg)</span>
+          <span style="font-family:'Roboto Mono',monospace;font-size:0.58rem;text-transform:uppercase;color:var(--t3);">Peso (kg)</span>
           <input type="number" class="setup-input" id="inp-peso" value="90" min="40" max="200" inputmode="numeric">
         </div>
         <div class="lbl">Zonas calculadas</div>
         <div class="zonas-preview" id="zonas-preview"></div>
       </div>
       <div class="setup-card">
-        <input type="text" class="setup-input" id="inp-treino" placeholder="Treino" style="font-size:1rem;font-family:'Oswald',sans-serif;text-align:center;width:100%;color:var(--t2);" maxlength="40">
-        <button class="btn-conectar" id="btn-bt">CONECTAR</button>
+        <input type="text" class="setup-input" id="inp-treino" placeholder="Tipo de treino" style="font-size:1rem;font-family:'Oswald',sans-serif;text-align:center;width:100%;color:var(--t2);" maxlength="40">
+        <button class="btn-conectar" id="btn-bt">CONECTAR SENSOR (HW9 / H10)</button>
         <div id="bt-status" style="font-family:'Roboto Mono',monospace;font-size:0.6rem;color:var(--t3);text-align:center;min-height:14px;"></div>
       </div>
       <button class="btn-iniciar" id="btn-start">Iniciar Treino</button>
@@ -250,12 +243,13 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="zonas-bar" id="zonas-bar"></div>
         <div class="tempo-row" id="tempo-row"></div>
       </div>
+      <!-- v1.2: grid 2x2 — VO2, TRIMP(corrigido), Calorias(novo), RMSSD(novo) -->
       <div class="metrics-grid">
         <div class="met">
           <div class="met-lbl">VO2 Máx est.</div>
           <div class="met-val" style="color:var(--pur);" id="m-vo2">--</div>
           <div class="met-unit">ml/kg/min</div>
-          <div class="met-sub" id="m-vo2-sub">—</div>
+          <div class="met-sub" id="m-vo2-sub">índice fixo do indivíduo</div>
         </div>
         <div class="met">
           <div class="met-lbl">TRIMP</div>
@@ -264,16 +258,16 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
           <div class="met-sub" id="m-trimp-sub">LEVE</div>
         </div>
         <div class="met">
-          <div class="met-lbl">Limiar anaeróbico</div>
-          <div class="met-val" style="color:var(--z5);" id="m-lan">--</div>
-          <div class="met-unit">bpm estimado</div>
-          <div class="met-sub" id="m-lan-sub">calculando...</div>
+          <div class="met-lbl">Calorias</div>
+          <div class="met-val" style="color:#10b981;" id="m-cal">0</div>
+          <div class="met-unit">kcal (VO2 Reserve)</div>
+          <div class="met-sub" id="m-cal-sub">acumulando...</div>
         </div>
         <div class="met">
-          <div class="met-lbl">Recuperação</div>
-          <div class="met-val" style="color:#10b981;" id="m-rec">--</div>
-          <div class="met-unit">horas estimadas</div>
-          <div class="met-sub" id="m-rec-sub">após encerrar</div>
+          <div class="met-lbl">RMSSD ao vivo</div>
+          <div class="met-val" style="color:#c4b5fd;" id="m-rmssd">--</div>
+          <div class="met-unit">ms</div>
+          <div class="met-sub" id="m-rmssd-sub">requer R-R (HW9/H10)</div>
         </div>
       </div>
       <button class="btn-stop" id="btn-stop">Encerrar Treino</button>
@@ -300,8 +294,19 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="rep-metrics">
           <div class="met"><div class="met-lbl">VO2 Máx est.</div><div class="met-val" style="color:var(--pur);" id="rr-vo2">--</div><div class="met-unit">ml/kg/min</div><div class="met-sub" id="rr-vo2-sub">—</div></div>
           <div class="met"><div class="met-lbl">TRIMP final</div><div class="met-val" style="color:var(--z4);" id="rr-trimp">--</div><div class="met-unit">carga</div><div class="met-sub" id="rr-trimp-sub">—</div></div>
-          <div class="met"><div class="met-lbl">Limiar anaeróbico</div><div class="met-val" style="color:var(--z5);" id="rr-lan">--</div><div class="met-unit">bpm</div><div class="met-sub">estimado</div></div>
-          <div class="met"><div class="met-lbl">Recuperação</div><div class="met-val" style="color:#10b981;" id="rr-rec">--</div><div class="met-unit">horas</div><div class="met-sub">próx. treino pesado</div></div>
+          <div class="met"><div class="met-lbl">Calorias totais</div><div class="met-val" style="color:#10b981;" id="rr-cal">--</div><div class="met-unit">kcal</div><div class="met-sub">método VO2 Reserve</div></div>
+          <div class="met"><div class="met-lbl">Recuperação</div><div class="met-val" style="color:#60a5fa;" id="rr-rec">--</div><div class="met-unit">horas</div><div class="met-sub">próx. treino pesado</div></div>
+        </div>
+        <!-- v1.2: RMSSD do treino aparece se sensor R-R conectado -->
+        <div id="rmssd-rep-bloco" style="display:none;background:var(--s2);border-radius:8px;padding:10px;border:1px solid var(--bd);margin-top:4px;">
+          <div style="font-family:'Roboto Mono',monospace;font-size:0.52rem;text-transform:uppercase;color:var(--t3);margin-bottom:6px;">HRV do Treino (R-R via sensor)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-family:'Lilita One',cursive;font-size:1.4rem;color:#c4b5fd;" id="rr-rmssd">--</div>
+              <div style="font-family:'Roboto Mono',monospace;font-size:0.5rem;color:var(--t3);">ms RMSSD final</div>
+            </div>
+            <div style="font-family:'Roboto Mono',monospace;font-size:0.58rem;color:var(--t2);text-align:right;max-width:55%;" id="rr-rmssd-sub">—</div>
+          </div>
         </div>
       </div>
       <div class="rep-card">
@@ -337,6 +342,11 @@ const ST={
   zoneTimes:[0,0,0,0,0],currentHR:0,maxHR:0,minHR:999,sumHR:0,countHR:0,
   fcmax:182,fcrep:58,peso:90,zonas:[],
   btDevice:null,btChar:null,connected:false,sessao:null,
+  // v1.2: novos campos de estado
+  totalCalorias:0,
+  vo2max:0,
+  rrBuffer:[],      // últimos R-R intervals para RMSSD
+  lastRMSSD:null,   // RMSSD calculado dos R-R
 };
 
 function calcZonas(fcmax,fcrep){
@@ -345,7 +355,6 @@ function calcZonas(fcmax,fcrep){
 }
 function getZona(hr){for(let i=ST.zonas.length-1;i>=0;i--){if(hr>=ST.zonas[i].min)return i;}return 0;}
 
-// FIX: concatenação pura
 function renderZonasPreview(){
   const fcmax=parseInt(document.getElementById('inp-fcmax').value)||182;
   const fcrep=parseInt(document.getElementById('inp-fcrep').value)||58;
@@ -365,10 +374,27 @@ function renderZonasPreview(){
 
 async function conectarBT(){
   const btn=document.getElementById('btn-bt'),status=document.getElementById('bt-status');
-  if(!navigator.bluetooth){status.textContent='Bluetooth não suportado neste navegador';status.style.color='var(--z5)';return;}
+
+  // Verifica se Web Bluetooth existe no browser
+  if(!navigator.bluetooth){
+    status.innerHTML='Bluetooth não suportado — use Chrome no Android ou Desktop';
+    status.style.color='var(--z5)';return;
+  }
+
+  // Detecta contexto inseguro antes de tentar (evita erro cru do browser)
+  var isSecure = location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1';
+  if(!isSecure){
+    status.innerHTML='⚠ Requer HTTPS ou localhost — funciona no GitHub Pages. No momento use o modo demo (Iniciar sem conectar).';
+    status.style.color='var(--z4)';
+    return;
+  }
+
   try{
-    status.textContent='Buscando dispositivo...';status.style.color='var(--t3)';
-    const device=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}],optionalServices:['heart_rate']});
+    status.textContent='Buscando sensor...';status.style.color='var(--t3)';
+    const device=await navigator.bluetooth.requestDevice({
+      filters:[{services:['heart_rate']}],
+      optionalServices:['heart_rate']
+    });
     ST.btDevice=device;status.textContent='Conectando...';
     const server=await device.gatt.connect();
     const service=await server.getPrimaryService('heart_rate');
@@ -376,22 +402,59 @@ async function conectarBT(){
     await ST.btChar.startNotifications();
     ST.btChar.addEventListener('characteristicvaluechanged',onHR);
     ST.connected=true;
-    btn.textContent='Conectado';btn.className='btn-conectar ok';
+    btn.textContent='Conectado ✓';btn.className='btn-conectar ok';
     status.textContent='Sinal ativo — sensor pronto';status.style.color='#10b981';
     device.addEventListener('gattserverdisconnected',()=>{
-      ST.connected=false;btn.textContent='CONECTAR';btn.className='btn-conectar';
-      status.textContent='Desconectado';status.style.color='var(--z5)';
+      ST.connected=false;
+      btn.textContent='CONECTAR SENSOR (HW9 / H10)';btn.className='btn-conectar';
+      status.textContent='Desconectado — clique para reconectar';status.style.color='var(--z5)';
     });
   }catch(e){
-    if(e.name!=='NotFoundError'){status.textContent='Erro: '+e.message;status.style.color='var(--z5)';}
-    else{status.textContent='Nenhum dispositivo selecionado';status.style.color='var(--t3)';}
+    if(e.name==='NotFoundError'){
+      status.textContent='Nenhum dispositivo selecionado';status.style.color='var(--t3)';
+    } else if(e.name==='SecurityError'||e.message.includes('permissions policy')||e.message.includes('disallowed')){
+      status.innerHTML='⚠ Bloqueado pelo ambiente — suba no GitHub Pages para usar o sensor. Modo demo funciona normalmente.';
+      status.style.color='var(--z4)';
+    } else if(e.name==='NetworkError'||e.message.includes('GATT')){
+      status.textContent='Sensor fora de alcance ou desligado — aproxime e tente novamente';status.style.color='var(--z5)';
+    } else {
+      status.textContent='Erro: '+e.message;status.style.color='var(--z5)';
+    }
   }
 }
+
+// v1.2: parser R-R intervals — HW9 e H10 transmitem R-R no pacote BLE
 function onHR(e){
-  const val=e.target.value,flags=val.getUint8(0);
+  const val=e.target.value;
+  const flags=val.getUint8(0);
   const hr=(flags&0x01)?val.getUint16(1,true):val.getUint8(1);
+
+  // R-R intervals — presente quando bit 4 do flags está ativo
+  if(flags&0x10){
+    let offset=(flags&0x01)?3:2;
+    while(offset+1<val.byteLength){
+      const rr=val.getUint16(offset,true)/1024*1000; // converte para ms
+      if(rr>300&&rr<2000){ // range fisiológico válido: 30-200 bpm
+        ST.rrBuffer.push(rr);
+        if(ST.rrBuffer.length>30)ST.rrBuffer.shift(); // janela deslizante 30 batimentos
+        if(ST.rrBuffer.length>=5){
+          ST.lastRMSSD=calcRMSSD(ST.rrBuffer);
+        }
+      }
+      offset+=2;
+    }
+  }
   if(hr>20&&hr<250)processHR(hr);
 }
+
+// v1.2: RMSSD pela janela de R-R intervals
+function calcRMSSD(rr){
+  if(rr.length<2)return null;
+  var soma=0;
+  for(var i=1;i<rr.length;i++){var d=rr[i]-rr[i-1];soma+=d*d;}
+  return Math.round(Math.sqrt(soma/(rr.length-1)));
+}
+
 function processHR(hr){
   ST.currentHR=hr;
   if(hr>ST.maxHR)ST.maxHR=hr;
@@ -401,6 +464,15 @@ function processHR(hr){
   ST.zoneTimes[z]++;
   ST.hrHistory.push({hr,t:Date.now()});
   if(ST.hrHistory.length>3600)ST.hrHistory.shift();
+
+  // v1.2: calorias por VO2 Reserve (Swain et al.) — acumula por segundo
+  // %HRR = (FC - FCrep) / (FCmax - FCrep) → VO2 = 3.5 + %HRR × (VO2max - 3.5)
+  // 1L O2 = 5 kcal
+  var hrr=Math.max(0,Math.min(1,(hr-ST.fcrep)/(ST.fcmax-ST.fcrep)));
+  var vo2inst=3.5+hrr*(ST.vo2max-3.5); // ml/kg/min
+  var calSeg=(vo2inst*ST.peso/1000*5.0)/60; // kcal/s
+  ST.totalCalorias+=calSeg;
+
   updateAtivo(hr,z);
 }
 
@@ -419,9 +491,13 @@ document.getElementById('btn-start').addEventListener('click',()=>{
   ST.peso=parseInt(document.getElementById('inp-peso').value)||90;
   ST.tipoTreino=document.getElementById('inp-treino').value.trim()||'Treino livre';
   ST.zonas=calcZonas(ST.fcmax,ST.fcrep);
+  // v1.2: VO2max calculado uma vez ao iniciar (é constante do indivíduo)
+  ST.vo2max=Math.round(15*(ST.fcmax/ST.fcrep)*10)/10;
+  // reset estado
   ST.ativo=true;ST.startTime=Date.now();
   ST.zoneTimes=[0,0,0,0,0];ST.hrHistory=[];
   ST.maxHR=0;ST.minHR=999;ST.sumHR=0;ST.countHR=0;
+  ST.totalCalorias=0;ST.rrBuffer=[];ST.lastRMSSD=null;
   document.getElementById('hdr-timer').classList.remove('hidden');
   initZonasBar();showScreen('sc-ativo');
   if(ST.timerId)clearInterval(ST.timerId);
@@ -429,7 +505,6 @@ document.getElementById('btn-start').addEventListener('click',()=>{
   if(!ST.connected)startDemo();
 });
 
-let demoT=0;
 function startDemo(){
   const curve=[68,72,78,85,92,102,112,125,136,145,152,158,163,168,172,175,172,168,162,155,148,142,138,134,130,126,122,118,114,110,108,112,118,125,132,140,148,155,162,168,172,176,178,175,170,164,158,152,146,140];
   let i=0;
@@ -438,7 +513,7 @@ function startDemo(){
     const base=curve[i%curve.length];
     const hr=base+Math.floor((Math.random()-0.5)*6);
     processHR(Math.max(60,Math.min(200,hr)));
-    i++;demoT++;
+    i++;
   },1000);
 }
 
@@ -495,20 +570,31 @@ function updateZonasBar(){
 }
 
 function updateMetrics(){
-  const fcmax=ST.fcmax,fcrep=ST.fcrep;
-  const vo2=Math.round(15*(fcmax/fcrep)*10)/10;
-  let vo2Sub=vo2>=55?'EXCELENTE':vo2>=47?'BOM':vo2>=42?'MÉDIO':'A MELHORAR';
+  // v1.2: VO2max é constante — calculado no início, não muda durante treino
+  var vo2=ST.vo2max||Math.round(15*(ST.fcmax/ST.fcrep)*10)/10;
+  var vo2Sub=vo2>=55?'EXCELENTE':vo2>=47?'BOM':vo2>=42?'MÉDIO':'A MELHORAR';
   const mVo2=document.getElementById('m-vo2');if(mVo2)mVo2.textContent=vo2;
   const mVo2S=document.getElementById('m-vo2-sub');if(mVo2S)mVo2S.textContent=vo2Sub;
-  const trimp=ST.zoneTimes.reduce((a,t,i)=>a+t*TRIMP_W[i],0);
-  let trimpSub=trimp<100?'LEVE':trimp<200?'MODERADO':trimp<350?'PESADO':'MUITO PESADO';
-  const mTrimp=document.getElementById('m-trimp');if(mTrimp)mTrimp.textContent=Math.round(trimp);
+
+  // v1.2: TRIMP em minutos — FIX CRÍTICO: zoneTimes em segundos ÷ 60
+  const trimp=Math.round(ST.zoneTimes.reduce((a,t,i)=>a+(t/60)*TRIMP_W[i],0));
+  var trimpSub=trimp<100?'LEVE':trimp<200?'MODERADO':trimp<350?'PESADO':'MUITO PESADO';
+  const mTrimp=document.getElementById('m-trimp');if(mTrimp)mTrimp.textContent=trimp;
   const mTrimpS=document.getElementById('m-trimp-sub');if(mTrimpS)mTrimpS.textContent=trimpSub;
-  const lan=ST.zonas[3]?ST.zonas[3].min:Math.round(fcmax*0.85);
-  const mLan=document.getElementById('m-lan');if(mLan)mLan.textContent=lan;
-  const mLanS=document.getElementById('m-lan-sub');if(mLanS)mLanS.textContent='Z4: '+lan+'+ bpm';
-  const rec=Math.max(8,Math.round(trimp*0.1+8));
-  const mRec=document.getElementById('m-rec');if(mRec)mRec.textContent=rec;
+
+  // v1.2: calorias ao vivo
+  var cal=Math.round(ST.totalCalorias);
+  const mCal=document.getElementById('m-cal');if(mCal)mCal.textContent=cal;
+  const mCalS=document.getElementById('m-cal-sub');if(mCalS)mCalS.textContent=cal>500?'alta demanda energética':cal>200?'demanda moderada':'aquecendo...';
+
+  // v1.2: RMSSD ao vivo — só atualiza se sensor com R-R conectado
+  const mRmssd=document.getElementById('m-rmssd');
+  const mRmssdS=document.getElementById('m-rmssd-sub');
+  if(ST.lastRMSSD!==null){
+    if(mRmssd)mRmssd.textContent=ST.lastRMSSD;
+    var rmssdInterp=ST.lastRMSSD>=50?'SNA equilibrado':ST.lastRMSSD>=30?'stress moderado':'alta carga autonômica';
+    if(mRmssdS)mRmssdS.textContent=rmssdInterp;
+  }
 }
 
 document.getElementById('btn-stop').addEventListener('click',()=>{
@@ -516,17 +602,21 @@ document.getElementById('btn-stop').addEventListener('click',()=>{
   clearInterval(ST.timerId);ST.ativo=false;
   const elapsed=Math.floor((Date.now()-ST.startTime)/1000);
   const fcmed=ST.countHR?Math.round(ST.sumHR/ST.countHR):0;
-  const trimp=Math.round(ST.zoneTimes.reduce((a,t,i)=>a+t*TRIMP_W[i],0));
-  const vo2=Math.round(15*(ST.fcmax/ST.fcrep)*10)/10;
+  // v1.2: TRIMP final em minutos (÷60)
+  const trimp=Math.round(ST.zoneTimes.reduce((a,t,i)=>a+(t/60)*TRIMP_W[i],0));
+  const vo2=ST.vo2max||Math.round(15*(ST.fcmax/ST.fcrep)*10)/10;
   const lan=ST.zonas[3]?ST.zonas[3].min:Math.round(ST.fcmax*0.85);
   const rec=Math.max(8,Math.round(trimp*0.1+8));
-  ST.sessao={date:Date.now(),elapsed,fcmed,fcmax:ST.maxHR,fcmin:ST.minHR<999?ST.minHR:0,
-    zoneTimes:[...ST.zoneTimes],trimp,vo2,lan,rec,
-    fcmaxConfig:ST.fcmax,fcrep:ST.fcrep,peso:ST.peso,tipoTreino:ST.tipoTreino||'Treino livre'};
+  const calorias=Math.round(ST.totalCalorias);
+  ST.sessao={
+    date:Date.now(),elapsed,fcmed,fcmax:ST.maxHR,fcmin:ST.minHR<999?ST.minHR:0,
+    zoneTimes:[...ST.zoneTimes],trimp,vo2,lan,rec,calorias,
+    rmssdFinal:ST.lastRMSSD,
+    fcmaxConfig:ST.fcmax,fcrep:ST.fcrep,peso:ST.peso,tipoTreino:ST.tipoTreino||'Treino livre'
+  };
   salvarSessao(ST.sessao);buildRelatorio(ST.sessao);showScreen('sc-relatorio');generateAI(ST.sessao);
 });
 
-// FIX: concatenação pura
 function buildRelatorio(s){
   const d=new Date(s.date);
   const repData=document.getElementById('rep-data');
@@ -557,8 +647,23 @@ function buildRelatorio(s){
   const rrVo2S=document.getElementById('rr-vo2-sub');if(rrVo2S)rrVo2S.textContent=s.vo2>=55?'EXCELENTE':s.vo2>=47?'BOM':s.vo2>=42?'MÉDIO':'A MELHORAR';
   const rrTrimp=document.getElementById('rr-trimp');if(rrTrimp)rrTrimp.textContent=s.trimp;
   const rrTrimpS=document.getElementById('rr-trimp-sub');if(rrTrimpS)rrTrimpS.textContent=s.trimp<100?'LEVE':s.trimp<200?'MODERADO':s.trimp<350?'PESADO':'MUITO PESADO';
-  const rrLan=document.getElementById('rr-lan');if(rrLan)rrLan.textContent=s.lan;
+  const rrCal=document.getElementById('rr-cal');if(rrCal)rrCal.textContent=s.calorias||'--';
   const rrRec=document.getElementById('rr-rec');if(rrRec)rrRec.textContent=s.rec;
+
+  // v1.2: bloco RMSSD só aparece se sensor R-R estava conectado
+  if(s.rmssdFinal!==null&&s.rmssdFinal!==undefined){
+    var rmssdBloco=document.getElementById('rmssd-rep-bloco');
+    if(rmssdBloco)rmssdBloco.style.display='block';
+    var rrRmssd=document.getElementById('rr-rmssd');if(rrRmssd)rrRmssd.textContent=s.rmssdFinal;
+    var rrRmssdSub=document.getElementById('rr-rmssd-sub');
+    if(rrRmssdSub){
+      var interp=s.rmssdFinal>=50?'SNA bem tolerou o esforço — recuperação rápida esperada':
+                 s.rmssdFinal>=30?'Carga autonômica moderada — recuperação padrão':
+                 'RMSSD baixo pós-treino — respeite janela de recuperação';
+      rrRmssdSub.textContent=interp;
+    }
+  }
+
   renderHistorico();
 }
 
@@ -568,37 +673,45 @@ function generateAI(s){
   const zpcts=s.zoneTimes.map(t=>Math.round(t/total*100));
   const elapsed=Math.floor(s.elapsed/60);
   const sessoes=loadSessoes();
-  const avgTrimp=sessoes.length>1?Math.round(sessoes.slice(0,7).reduce((a,x)=>a+x.trimp,0)/Math.min(sessoes.length,7)):null;
+  // FIX: slice(1,8) exclui a sessão atual (já salva em [0]) — média só de sessões anteriores
+  const histSessoes=sessoes.slice(1,8);
+  const avgTrimp=histSessoes.length>0?Math.round(histSessoes.reduce((a,x)=>a+x.trimp,0)/histSessoes.length):null;
   setTimeout(()=>{
     let txt='';
     const z4z5=zpcts[3]+zpcts[4],z1z2=zpcts[0]+zpcts[1];
     if(z4z5>60)txt+='Alta intensidade — '+z4z5+'% acima do limiar ('+s.lan+' bpm). Máx 2 sessões/semana. Próximo treino: Z2 puro. ';
     else if(z1z2>70)txt+='Aeróbico leve — '+z1z2+'% em Z1-Z2. Padrão polarizado correto. Biogênese mitocondrial em andamento. ';
     else txt+='Distribuição equilibrada — '+zpcts[2]+'% em Z3. Relação estímulo/recuperação adequada. ';
-    if(s.trimp>=350)txt+='TRIMP '+s.trimp+' — carga pesada. + turno noturno braçal = recuperação 36-48h. Não adicione carga. ';
+    if(s.trimp>=350)txt+='TRIMP '+s.trimp+' — carga pesada. Recuperação '+s.rec+'h. ';
     else if(s.trimp>=200)txt+='TRIMP '+s.trimp+' — carga moderada. '+(avgTrimp?'Média histórica: '+avgTrimp+'. ':'')+'Recuperação: '+s.rec+'h. ';
-    else if(s.trimp>=100)txt+='TRIMP '+s.trimp+' — carga moderada. '+(avgTrimp?'Média: '+avgTrimp+'. ':'')+'Ideal pós-turno. ';
-    else txt+='TRIMP '+s.trimp+' — recuperação ativa. Z1-Z2 acelera remoção de lactato. ';
+    else txt+='TRIMP '+s.trimp+' — carga leve. Ideal pós-turno. ';
+    // v1.2: calorias na análise
+    txt+='Gasto calórico: '+s.calorias+'kcal (método VO2 Reserve — erro ±15%). ';
     const vo2class=s.vo2>=55?'excelente':s.vo2>=47?'bom':s.vo2>=42?'médio':'abaixo da média';
     txt+='VO2 Máx estimado: '+s.vo2+' ml/kg/min — '+vo2class+'. ';
+    // v1.2: RMSSD na análise
+    if(s.rmssdFinal!==null&&s.rmssdFinal!==undefined){
+      txt+='RMSSD pós-treino: '+s.rmssdFinal+'ms — '+(s.rmssdFinal>=50?'boa tolerância ao esforço.':s.rmssdFinal>=30?'carga autonômica detectada.':'SNA sob pressão — priorize sono esta noite.')+' ';
+    }
     if(s.tipoTreino&&s.tipoTreino!=='Treino livre'){
       if(s.tipoTreino.toLowerCase().includes('bike')||s.tipoTreino.toLowerCase().includes('zwift'))
         txt+='Bike Z2 (60-75% FCmax): 3x/sem 45-60min. Ganho estimado VO2 de 8-12% em 12 semanas. ';
       else if(s.tipoTreino.toLowerCase().includes('hiit')||s.tipoTreino.toLowerCase().includes('intervalo'))
-        txt+='HIIT: máx 2x/sem. Intervalo mínimo 48h entre sessões (turno noturno pesado). ';
+        txt+='HIIT: máx 2x/sem. Intervalo mínimo 48h entre sessões. ';
     }
-    if(z4z5>50&&s.trimp>200)txt+='Próximo: Z2 puro (abaixo de '+Math.round(s.fcmaxConfig*0.75)+' bpm) 40-50min.';
+    if(z4z5>50&&s.trimp>200)txt+='Próximo: Z2 puro abaixo de '+Math.round(s.fcmaxConfig*0.75)+' bpm, 40-50min.';
     else if(z1z2>70)txt+='Próximo: 2-3 intervalos de 4min em Z4 (90-95% FCmax). Método 4x4 norueguês.';
     else txt+='Consistência: 3x/sem 45min supera 1x longa. Frequência > intensidade.';
-    body.style.opacity='0';body.style.transition='opacity 0.5s';
-    setTimeout(()=>{body.textContent=txt;body.style.opacity='1';},400);
+    // v1.2: fade corrigido — transition antes de opacity, timeout > duração da transição
+    body.style.transition='opacity 0.4s';
+    body.style.opacity='0';
+    setTimeout(()=>{body.textContent=txt;body.style.opacity='1';},500);
   },1600);
 }
 
 function salvarSessao(s){try{const h=JSON.parse(localStorage.getItem('pulse_hist_v2')||'[]');h.unshift(s);localStorage.setItem('pulse_hist_v2',JSON.stringify(h.slice(0,60)));}catch(e){}}
 function loadSessoes(){try{return JSON.parse(localStorage.getItem('pulse_hist_v2')||'[]');}catch(e){return[];}}
 
-// FIX: concatenação pura
 function renderHistorico(){
   const lista=document.getElementById('hist-list');if(!lista)return;
   const sessoes=loadSessoes();
@@ -610,20 +723,19 @@ function renderHistorico(){
   }
   const total=doMes.length;
   const totalTrimp=doMes.reduce((a,s)=>a+s.trimp,0);
+  const totalCal=doMes.reduce((a,s)=>a+(s.calorias||0),0);
   const avgTrimp=Math.round(totalTrimp/total);
-
   var html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">';
   html+='<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--bd);">';
   html+='<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:var(--blu);">'+total+'</div>';
   html+='<div style="font-family:\'Roboto Mono\',monospace;font-size:0.48rem;color:var(--t3);text-transform:uppercase;">Treinos</div></div>';
   html+='<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--bd);">';
-  html+='<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:var(--z4);">'+totalTrimp+'</div>';
-  html+='<div style="font-family:\'Roboto Mono\',monospace;font-size:0.48rem;color:var(--t3);text-transform:uppercase;">TRIMP Total</div></div>';
+  html+='<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:var(--z4);">'+avgTrimp+'</div>';
+  html+='<div style="font-family:\'Roboto Mono\',monospace;font-size:0.48rem;color:var(--t3);text-transform:uppercase;">TRIMP Méd</div></div>';
   html+='<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center;border:1px solid var(--bd);">';
-  html+='<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:var(--pur);">'+avgTrimp+'</div>';
-  html+='<div style="font-family:\'Roboto Mono\',monospace;font-size:0.48rem;color:var(--t3);text-transform:uppercase;">Méd/Treino</div></div>';
+  html+='<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:#10b981;">'+totalCal+'</div>';
+  html+='<div style="font-family:\'Roboto Mono\',monospace;font-size:0.48rem;color:var(--t3);text-transform:uppercase;">kcal Total</div></div>';
   html+='</div>';
-
   doMes.forEach(function(s,i){
     const d=new Date(s.date);
     const dia=String(d.getDate()).padStart(2,'0');
@@ -632,20 +744,16 @@ function renderHistorico(){
     const durStr=(h>0?h+'h ':'')+m+'min';
     const totalZ=s.zoneTimes.reduce((a,b)=>a+b,0)||1;
     var zonasBars='';
-    s.zoneTimes.forEach(function(t,zi){
-      zonasBars+='<div style="flex:'+(t/totalZ)+';background:'+ZONA_COR[zi]+';"></div>';
-    });
+    s.zoneTimes.forEach(function(t,zi){zonasBars+='<div style="flex:'+(t/totalZ)+';background:'+ZONA_COR[zi]+';"></div>';});
     html+='<div class="hist-item">';
     html+='<div class="hi-data"><div class="hi-dia">'+dia+'</div><div class="hi-mes">'+mes+'</div></div>';
     html+='<div class="hi-info">';
     html+='<div class="hi-zonas">'+zonasBars+'</div>';
     html+='<div class="hi-meta" style="color:var(--blu);font-family:\'Oswald\',sans-serif;font-size:0.65rem;text-transform:uppercase;">'+(s.tipoTreino||'Treino livre')+'</div>';
-    html+='<div class="hi-meta">FC '+s.fcmed+' méd · '+s.fcmax+' máx · TRIMP '+s.trimp+'</div>';
+    html+='<div class="hi-meta">FC '+s.fcmed+' méd · TRIMP '+s.trimp+' · '+(s.calorias||0)+'kcal</div>';
     html+='</div>';
-    html+='<div class="hi-right">';
-    html+='<div class="hi-dur">'+durStr+'</div>';
-    html+='<button class="del-btn" onclick="deletarSessao('+i+')">DEL</button>';
-    html+='</div></div>';
+    html+='<div class="hi-right"><div class="hi-dur">'+durStr+'</div>';
+    html+='<button class="del-btn" onclick="deletarSessao('+i+')">DEL</button></div></div>';
   });
   lista.innerHTML=html;
 }
@@ -675,16 +783,7 @@ function updateDate(){
   if(el)el.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
 }
 
-// FIX: SW domain check
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){
-    var host=window.location.hostname;
-    if(host==='localhost'||host.indexOf('github.io')>=0||host.indexOf('127.0.0.1')>=0){
-      navigator.serviceWorker.register('./sw.js').catch(function(){});
-    }
-  });
-}
-
+// v1.2: SW removido — sw.js não existe nesta versão standalone
 let dPrm=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dPrm=e;document.getElementById('ib').classList.add('show');});
 document.getElementById('ib-y').addEventListener('click',async()=>{document.getElementById('ib').classList.remove('show');if(dPrm){dPrm.prompt();await dPrm.userChoice;dPrm=null;}});
