@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<!-- MAX.CORE PULSE — Versão 1.3 -->
+<!-- MAX.CORE PULSE — Versão 1.5 -->
 <!-- v1.1: letter-spacing:0, max-width:100vw, SW domain, template→concat -->
-<!-- v1.2: TRIMP ÷60 (segundos→minutos), Calorias VO2 Reserve, R-R intervals BLE (HW9/H10), RMSSD ao vivo, fade fix, SW removido, demoT removido -->
-<!-- v1.3: FCmax default 195 (era 182, ajustado à FCmax real medida), alerta visual+háptico de tempo acumulado em Z5 (≥5min amarelo, ≥8min vermelho pulsante) -->
+<!-- v1.2: TRIMP ÷60, Calorias VO2 Reserve, R-R intervals BLE (HW9/H10), RMSSD ao vivo, fade fix, SW removido, demoT removido -->
+<!-- v1.3: FCmax default 195, alerta visual+háptico de tempo acumulado em Z5 (≥5min amarelo, ≥8min vermelho pulsante) -->
+<!-- v1.4: FIX conexão BLE — acceptAllDevices (HW9/clones não anunciam heart_rate), feedback de nome do device, mensagens de erro mais claras -->
+<!-- v1.5: smoothing de 5 valores no display de BPM — elimina sobe-desce de sensor óptico HW9 (FC máx/mín/méd continuam crus) -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -70,6 +72,8 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .btn-iniciar:active{opacity:0.8;}
 .btn-conectar{width:100%;padding:12px;background:var(--s2);color:var(--t2);border:1px solid var(--bd);border-radius:10px;font-family:'Oswald',sans-serif;font-size:0.85rem;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
 .btn-conectar.ok{background:#10b98115;color:#10b981;border-color:#10b98150;}
+.bt-help{font-family:'Roboto Mono',monospace;font-size:0.55rem;color:var(--t3);line-height:1.5;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-top:4px;}
+.bt-help strong{color:var(--blu);}
 #sc-ativo{display:flex;flex-direction:column;gap:9px;}
 .semaforo{border-radius:12px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border:2px solid;transition:all 0.6s ease;}
 .sem-esq{display:flex;flex-direction:column;gap:2px;}
@@ -78,7 +82,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .sem-bpm-range{font-family:'Roboto Mono',monospace;font-size:0.52rem;color:rgba(255,255,255,0.4);margin-top:1px;}
 .sem-num{font-family:'Lilita One',cursive;font-size:4.5rem;line-height:1;opacity:0.12;transition:color 0.6s;}
 
-/* v1.3: alerta de tempo em Z5 */
 #z5-alert{display:none;border-radius:10px;padding:10px 13px;align-items:center;gap:10px;border:1px solid;transition:all 0.3s ease;}
 #z5-alert.show{display:flex;}
 #z5-alert.warn{background:#f59e0b15;border-color:#f59e0b60;color:#f59e0b;}
@@ -211,7 +214,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="lbl">Configure suas zonas</div>
         <div class="setup-row">
           <span style="font-family:'Roboto Mono',monospace;font-size:0.58rem;text-transform:uppercase;color:var(--t3);">FC Máx (bpm)</span>
-          <!-- v1.3: default 195 (FCmax real medida em campo) -->
           <input type="number" class="setup-input" id="inp-fcmax" value="195" min="120" max="220" inputmode="numeric">
         </div>
         <div class="setup-row">
@@ -229,6 +231,13 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <input type="text" class="setup-input" id="inp-treino" placeholder="Tipo de treino" style="font-size:1rem;font-family:'Oswald',sans-serif;text-align:center;width:100%;color:var(--t2);" maxlength="40">
         <button class="btn-conectar" id="btn-bt">CONECTAR SENSOR (HW9 / H10)</button>
         <div id="bt-status" style="font-family:'Roboto Mono',monospace;font-size:0.6rem;color:var(--t3);text-align:center;min-height:14px;"></div>
+        <div class="bt-help">
+          <strong>HW9 não aparecendo?</strong><br>
+          1. Molha os eletrodos da cinta (saliva/água) — sem contato a cinta não liga o BLE<br>
+          2. Fecha apps que possam estar pareados (Polar Beat, Zwift, etc) — BLE aceita 1 conexão por vez<br>
+          3. Esquece o pareamento antigo nas configs do Android<br>
+          4. Localização ligada no Chrome (Android exige pra escanear BLE)
+        </div>
       </div>
       <button class="btn-iniciar" id="btn-start">Iniciar Treino</button>
     </div>
@@ -244,7 +253,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="sem-num" id="sem-num">2</div>
       </div>
 
-      <!-- v1.3: alerta de tempo acumulado em Z5 -->
       <div id="z5-alert">
         <div class="z5a-icon" id="z5a-icon">⚠️</div>
         <div class="z5a-txt">
@@ -269,7 +277,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="zonas-bar" id="zonas-bar"></div>
         <div class="tempo-row" id="tempo-row"></div>
       </div>
-      <!-- v1.2: grid 2x2 — VO2, TRIMP(corrigido), Calorias(novo), RMSSD(novo) -->
       <div class="metrics-grid">
         <div class="met">
           <div class="met-lbl">VO2 Máx est.</div>
@@ -323,7 +330,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
           <div class="met"><div class="met-lbl">Calorias totais</div><div class="met-val" style="color:#10b981;" id="rr-cal">--</div><div class="met-unit">kcal</div><div class="met-sub">método VO2 Reserve</div></div>
           <div class="met"><div class="met-lbl">Recuperação</div><div class="met-val" style="color:#60a5fa;" id="rr-rec">--</div><div class="met-unit">horas</div><div class="met-sub">próx. treino pesado</div></div>
         </div>
-        <!-- v1.2: RMSSD do treino aparece se sensor R-R conectado -->
         <div id="rmssd-rep-bloco" style="display:none;background:var(--s2);border-radius:8px;padding:10px;border:1px solid var(--bd);margin-top:4px;">
           <div style="font-family:'Roboto Mono',monospace;font-size:0.52rem;text-transform:uppercase;color:var(--t3);margin-bottom:6px;">HRV do Treino (R-R via sensor)</div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -363,23 +369,21 @@ const ZONA_DESC=['Recuperação ativa','Aeróbico leve','Aeróbico intenso','Lim
 const ZONA_BG=['#f4f4f508','#3b82f612','#22c55e12','#f59e0b12','#ef444412'];
 const TRIMP_W=[1,2,3,4,5];
 
-// v1.3: thresholds de tempo acumulado em Z5 (em segundos)
-const Z5_WARN_SEC=300;    // 5 min — aviso amarelo
-const Z5_DANGER_SEC=480;  // 8 min — aviso vermelho pulsante
+const Z5_WARN_SEC=300;
+const Z5_DANGER_SEC=480;
 
 const ST={
   ativo:false,startTime:null,timerId:null,hrHistory:[],
   zoneTimes:[0,0,0,0,0],currentHR:0,maxHR:0,minHR:999,sumHR:0,countHR:0,
   fcmax:195,fcrep:58,peso:90,zonas:[],
   btDevice:null,btChar:null,connected:false,sessao:null,
-  // v1.2: novos campos de estado
   totalCalorias:0,
   vo2max:0,
-  rrBuffer:[],      // últimos R-R intervals para RMSSD
-  lastRMSSD:null,   // RMSSD calculado dos R-R
-  // v1.3: tracking de alertas Z5 (pra vibrar só uma vez por threshold)
+  rrBuffer:[],
+  lastRMSSD:null,
   z5WarnFired:false,
   z5DangerFired:false,
+  hrSmoothBuffer:[],  // v1.5: buffer de suavização do BPM exibido
 };
 
 function calcZonas(fcmax,fcrep){
@@ -405,6 +409,9 @@ function renderZonasPreview(){
   el.innerHTML=html;
 }
 
+// v1.4: FIX da conexão BLE
+// HW9 e clones não anunciam serviço heart_rate no advertisement;
+// usamos acceptAllDevices e validamos o serviço só depois de conectar.
 async function conectarBT(){
   const btn=document.getElementById('btn-bt'),status=document.getElementById('bt-status');
 
@@ -415,41 +422,65 @@ async function conectarBT(){
 
   var isSecure = location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1';
   if(!isSecure){
-    status.innerHTML='⚠ Requer HTTPS ou localhost — funciona no GitHub Pages. No momento use o modo demo (Iniciar sem conectar).';
+    status.innerHTML='⚠ Requer HTTPS — abre pelo GitHub Pages';
     status.style.color='var(--z4)';
     return;
   }
 
   try{
-    status.textContent='Buscando sensor...';status.style.color='var(--t3)';
+    status.textContent='Buscando sensor... (escolhe a cinta na lista)';
+    status.style.color='var(--t3)';
+
     const device=await navigator.bluetooth.requestDevice({
-      filters:[{services:['heart_rate']}],
-      optionalServices:['heart_rate']
+      acceptAllDevices:true,
+      optionalServices:['heart_rate','battery_service']
     });
-    ST.btDevice=device;status.textContent='Conectando...';
+
+    ST.btDevice=device;
+    const nome=device.name||'sensor';
+    status.textContent='Conectando em '+nome+'...';
     const server=await device.gatt.connect();
-    const service=await server.getPrimaryService('heart_rate');
+
+    let service;
+    try{
+      service=await server.getPrimaryService('heart_rate');
+    }catch(err){
+      status.innerHTML='⚠ "'+nome+'" não expõe serviço heart_rate. Selecionou a cinta certa?';
+      status.style.color='var(--z5)';
+      try{device.gatt.disconnect();}catch(e){}
+      return;
+    }
+
     ST.btChar=await service.getCharacteristic('heart_rate_measurement');
     await ST.btChar.startNotifications();
     ST.btChar.addEventListener('characteristicvaluechanged',onHR);
     ST.connected=true;
-    btn.textContent='Conectado ✓';btn.className='btn-conectar ok';
-    status.textContent='Sinal ativo — sensor pronto';status.style.color='#10b981';
+    btn.textContent='Conectado ✓ ('+nome+')';
+    btn.className='btn-conectar ok';
+    status.textContent='Sinal ativo — aguardando batida...';
+    status.style.color='#10b981';
+
     device.addEventListener('gattserverdisconnected',()=>{
       ST.connected=false;
-      btn.textContent='CONECTAR SENSOR (HW9 / H10)';btn.className='btn-conectar';
-      status.textContent='Desconectado — clique para reconectar';status.style.color='var(--z5)';
+      btn.textContent='CONECTAR SENSOR (HW9 / H10)';
+      btn.className='btn-conectar';
+      status.textContent='Desconectado — clique para reconectar';
+      status.style.color='var(--z5)';
     });
+
   }catch(e){
     if(e.name==='NotFoundError'){
-      status.textContent='Nenhum dispositivo selecionado';status.style.color='var(--t3)';
-    } else if(e.name==='SecurityError'||e.message.includes('permissions policy')||e.message.includes('disallowed')){
-      status.innerHTML='⚠ Bloqueado pelo ambiente — suba no GitHub Pages para usar o sensor. Modo demo funciona normalmente.';
+      status.textContent='Nenhum dispositivo selecionado';
+      status.style.color='var(--t3)';
+    } else if(e.name==='SecurityError'||(e.message||'').includes('permissions policy')||(e.message||'').includes('disallowed')){
+      status.innerHTML='⚠ Bloqueado pelo ambiente — abre pelo GitHub Pages';
       status.style.color='var(--z4)';
-    } else if(e.name==='NetworkError'||e.message.includes('GATT')){
-      status.textContent='Sensor fora de alcance ou desligado — aproxime e tente novamente';status.style.color='var(--z5)';
+    } else if(e.name==='NetworkError'||(e.message||'').includes('GATT')){
+      status.textContent='Fora de alcance ou cinta sem energia — molha eletrodos e tenta de novo';
+      status.style.color='var(--z5)';
     } else {
-      status.textContent='Erro: '+e.message;status.style.color='var(--z5)';
+      status.textContent='Erro: '+e.message;
+      status.style.color='var(--z5)';
     }
   }
 }
@@ -485,31 +516,37 @@ function calcRMSSD(rr){
 
 function processHR(hr){
   ST.currentHR=hr;
+  // Stats crus (FC max/min/med usam dado real, sem suavização)
   if(hr>ST.maxHR)ST.maxHR=hr;
   if(hr<ST.minHR)ST.minHR=hr;
   ST.sumHR+=hr;ST.countHR++;
-  const z=getZona(hr);
+
+  // v1.5: suavização do valor exibido (média móvel de 5 amostras)
+  // Elimina o "sobe-desce" visual do sensor óptico HW9
+  ST.hrSmoothBuffer.push(hr);
+  if(ST.hrSmoothBuffer.length>5)ST.hrSmoothBuffer.shift();
+  const hrDisplay=Math.round(ST.hrSmoothBuffer.reduce((a,b)=>a+b,0)/ST.hrSmoothBuffer.length);
+
+  const z=getZona(hrDisplay);
   ST.zoneTimes[z]++;
-  ST.hrHistory.push({hr,t:Date.now()});
+  ST.hrHistory.push({hr:hrDisplay,t:Date.now()});
   if(ST.hrHistory.length>3600)ST.hrHistory.shift();
 
-  var hrr=Math.max(0,Math.min(1,(hr-ST.fcrep)/(ST.fcmax-ST.fcrep)));
+  var hrr=Math.max(0,Math.min(1,(hrDisplay-ST.fcrep)/(ST.fcmax-ST.fcrep)));
   var vo2inst=3.5+hrr*(ST.vo2max-3.5);
   var calSeg=(vo2inst*ST.peso/1000*5.0)/60;
   ST.totalCalorias+=calSeg;
 
-  updateAtivo(hr,z);
-  updateZ5Alert(z); // v1.3
+  updateAtivo(hrDisplay,z);
+  updateZ5Alert(z);
 }
 
-// v1.3: gerencia o alerta de tempo acumulado em Z5
 function updateZ5Alert(zonaAtual){
   const alert=document.getElementById('z5-alert');
   if(!alert)return;
   const z5sec=ST.zoneTimes[4];
   const emZ5=(zonaAtual===4);
 
-  // Vibração háptica ao cruzar thresholds (uma única vez por sessão)
   if(z5sec>=Z5_WARN_SEC&&!ST.z5WarnFired){
     ST.z5WarnFired=true;
     if(navigator.vibrate)navigator.vibrate([200,100,200]);
@@ -519,7 +556,6 @@ function updateZ5Alert(zonaAtual){
     if(navigator.vibrate)navigator.vibrate([300,100,300,100,300]);
   }
 
-  // Mostra alerta SÓ se estiver atualmente em Z5 e já passou de 5min acumulados
   if(emZ5&&z5sec>=Z5_WARN_SEC){
     alert.classList.add('show');
     const m=Math.floor(z5sec/60),s=z5sec%60;
@@ -560,7 +596,7 @@ document.getElementById('btn-start').addEventListener('click',()=>{
   ST.zoneTimes=[0,0,0,0,0];ST.hrHistory=[];
   ST.maxHR=0;ST.minHR=999;ST.sumHR=0;ST.countHR=0;
   ST.totalCalorias=0;ST.rrBuffer=[];ST.lastRMSSD=null;
-  // v1.3: reset dos flags de alerta Z5
+  ST.hrSmoothBuffer=[];  // v1.5: reset do buffer de suavização
   ST.z5WarnFired=false;ST.z5DangerFired=false;
   const z5a=document.getElementById('z5-alert');
   if(z5a)z5a.classList.remove('show','warn','danger');
