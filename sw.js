@@ -1,32 +1,31 @@
-/* MAX.CORE PULSE — Service Worker v1 */
-var CACHE = 'maxcore-pulse-v1';
-var FILES = ['./index.html'];
+/* PULSE Service Worker v1.7 */
+const CACHE='pulse-v1.7';
+const FILES=['./','./index.html','./bio-bridge.js'];
 
-self.addEventListener('install', function(e) {
-  e.waitUntil(caches.open(CACHE).then(function(c) { return c.addAll(FILES); }));
+self.addEventListener('install',e=>{
   self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));
 });
 
-self.addEventListener('activate', function(e) {
+self.addEventListener('activate',e=>{
   e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(
-        keys.filter(function(k) { return k !== CACHE; })
-            .map(function(k) { return caches.delete(k); })
-      );
-    })
+    caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+      .then(()=>self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', function(e) {
-  e.respondWith(
-    fetch(e.request)
-      .then(function(res) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
-        return res;
-      })
-      .catch(function() { return caches.match(e.request); })
-  );
+self.addEventListener('fetch',e=>{
+  const url=e.request.url;
+  const isCodigo=url.endsWith('.html')||url.endsWith('.js')||url.endsWith('/');
+  if(isCodigo){
+    e.respondWith(
+      fetch(e.request).then(r=>{
+        const c=r.clone();
+        caches.open(CACHE).then(cache=>cache.put(e.request,c));
+        return r;
+      }).catch(()=>caches.match(e.request))
+    );
+  }else{
+    e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));
+  }
 });
